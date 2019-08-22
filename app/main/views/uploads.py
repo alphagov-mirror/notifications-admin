@@ -1,6 +1,7 @@
-from flask import redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 
 from app import current_service
+from app.extensions import antivirus_client
 from app.main import main
 from app.main.forms import PDFUploadForm
 from app.utils import user_has_permissions
@@ -19,6 +20,11 @@ def choose_upload_file(service_id):
 
     if form.validate_on_submit():
         pdf_file = form.file.data
+
+        virus_free = antivirus_client.scan(pdf_file)
+        if not virus_free:
+            flash('The file you uploaded contains a virus', 'dangerous')
+            return render_template('views/uploads/choose-file.html', form=form), 400
 
         return redirect(
             url_for(
