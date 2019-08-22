@@ -91,6 +91,36 @@ def test_post_choose_upload_file_when_file_is_too_big(mocker, client_request):
     assert normalize_spaces(page.select('.banner-dangerous')[0].text) == 'File must be smaller than 2MB'
 
 
+def test_post_choose_upload_file_when_file_is_malformed(mocker, client_request):
+    mocker.patch('app.main.views.uploads.antivirus_client.scan', return_value=True)
+
+    with open('tests/test_pdf_files/no_eof_marker.pdf', 'rb') as file:
+        page = client_request.post(
+            'main.choose_upload_file',
+            service_id=SERVICE_ONE_ID,
+            _data={'file': file},
+            _expected_status=400
+        )
+    assert page.find('h1').text == 'Upload a letter'
+    assert normalize_spaces(page.select('.banner-dangerous')[0].text) == 'File must be a valid PDF'
+
+
+def test_post_choose_upload_file_when_file_is_too_long(mocker, client_request):
+    mocker.patch('app.main.views.uploads.antivirus_client.scan', return_value=True)
+
+    with open('tests/test_pdf_files/11_pages.pdf', 'rb') as file:
+        page = client_request.post(
+            'main.choose_upload_file',
+            service_id=SERVICE_ONE_ID,
+            _data={'file': file},
+            _expected_status=400
+        )
+    assert page.find('h1').text == 'Upload a letter'
+    assert normalize_spaces(
+        page.select('.banner-dangerous')[0].text
+    ) == 'Your letter must be no more than 10 pages long'
+
+
 def test_upload_letter_preview(client_request):
     page = client_request.get('main.upload_letter_preview', service_id=SERVICE_ONE_ID, filename='my_letter.pdf')
 
