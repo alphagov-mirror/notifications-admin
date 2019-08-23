@@ -42,13 +42,10 @@ def choose_upload_file(service_id):
         pdf_file.seek(0)
 
         try:
-            pages = pdf_page_count(pdf_file.stream)
+            pdf_page_count(pdf_file.stream)
         except PdfReadError:
             current_app.logger.info('Invalid PDF uploaded for service_id: {}'.format(current_service.id))
             return invalid_upload_error_message('File must be a valid PDF')
-
-        if pages > MAX_PAGE_LENGTH:
-            return invalid_upload_error_message('Your letter must be no more than 10 pages long')
 
         return redirect(
             url_for(
