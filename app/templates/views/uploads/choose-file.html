@@ -17,7 +17,7 @@
   <p>
     {{ file_upload(
       form.file,
-      action = url_for('main.choose_upload_file', service_id=current_service.id),
+      action = url_for('main.upload_letter', service_id=current_service.id),
     )}}
   </p>
   <p>You can upload a single letter as a PDF.</p>

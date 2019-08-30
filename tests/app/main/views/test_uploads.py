@@ -30,7 +30,7 @@ def test_post_choose_upload_file_redirects_for_valid_file(mocker, client_request
             service_id=SERVICE_ONE_ID,
             _data={'file': file},
             _expected_redirect=url_for(
-                'main.upload_letter_preview',
+                'main.uploaded_letter_preview',
                 service_id=SERVICE_ONE_ID,
                 filename='tests/test_pdf_files/one_page_pdf.pdf',
                 _external=True
@@ -105,7 +105,7 @@ def test_post_choose_upload_file_when_file_is_malformed(mocker, client_request):
     assert normalize_spaces(page.select('.banner-dangerous')[0].text) == 'File must be a valid PDF'
 
 
-def test_upload_letter_preview(client_request):
-    page = client_request.get('main.upload_letter_preview', service_id=SERVICE_ONE_ID, filename='my_letter.pdf')
+def test_uploaded_letter_preview(client_request):
+    page = client_request.get('main.uploaded_letter_preview', service_id=SERVICE_ONE_ID, filename='my_letter.pdf')
 
     assert page.find('h1').text == 'my_letter.pdf'

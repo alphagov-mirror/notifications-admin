@@ -46,6 +46,7 @@ from app.utils import (
 )
 
 
+# page where we view a notification
 @main.route("/services/<service_id>/notification/<uuid:notification_id>")
 @user_has_permissions('view_activity', 'send_messages')
 def view_notification(service_id, notification_id):
@@ -169,6 +170,7 @@ def get_preview_error_image():
         return file.read()
 
 
+# this is the page that makes the image
 @main.route("/services/<service_id>/notification/<uuid:notification_id>.<filetype>")
 @user_has_permissions('view_activity')
 def view_letter_notification_as_preview(service_id, notification_id, filetype):

@@ -12,7 +12,7 @@
 
     <p>Upload a letter and Notify will print, pack and post it for you.</p>
 
-    <a href="{{ url_for('.choose_upload_file', service_id=current_service.id) }}" class="button-secondary">Upload a letter</a>
+    <a href="{{ url_for('.upload_letter', service_id=current_service.id) }}" class="button-secondary">Upload a letter</a>
   </div>
 </div>
 {% endblock %}

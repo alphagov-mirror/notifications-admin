@@ -2,13 +2,17 @@
 {% from "components/page-header.html" import page_header %}
 
 {% block service_page_title %}
-  {{ filename }}
+  {{ original_filename }}
 {% endblock %}
 
 {% block maincolumn_content %}
     {{ page_header(
-        filename,
-        back_link=url_for('main.choose_upload_file', service_id=current_service.id)
+        original_filename,
+        back_link=url_for('main.upload_letter', service_id=current_service.id)
     ) }}
+
+    <div class="letter-sent">
+      {{ template|string }}
+    </div>
 
 {% endblock %}
