@@ -39,20 +39,24 @@ def upload_letter(service_id):
     form = PDFUploadForm()
 
     if form.validate_on_submit():
-        pdf_file = form.file.data
+        pdf_file_bytes = form.file.data.read()
 
-        # what if antivirus raises an error / can't be connected to?
         # virus_free = antivirus_client.scan(pdf_file)
         virus_free = True
 
         if not virus_free:
             return invalid_upload_error_message('The file you uploaded contains a virus')
 
+        import pdb; pdb.set_trace()
+
+        # could use pdf_file.stream.read() here but would stil have to rewind it
         if len(pdf_file.read()) > MAX_FILE_UPLOAD_SIZE:
             return invalid_upload_error_message('File must be smaller than 2MB')
         pdf_file.seek(0)
 
         try:
+            # this only works with stream
+            # BytesIO(pdf_file_bytes)
             page_count = pdf_page_count(pdf_file.stream)
             pdf_file.seek(0)
         except PdfReadError:
@@ -63,10 +67,14 @@ def upload_letter(service_id):
         bucket_name, file_location = get_transient_letter_location(service_id, upload_id)
 
         try:
+            # BytesIO(pdf_file_bytes)
+
             response = sanitise_letter(pdf_file)
             response.raise_for_status()
         except RequestException as ex:
             if ex.response is not None and ex.response.status_code == 400:
+                BytesIO(pdf_file_bytes)
+
                 pdf_file.seek(0)
                 utils_s3upload(
                     filedata=pdf_file.stream.read(),
