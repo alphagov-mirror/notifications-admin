@@ -41,24 +41,16 @@ def upload_letter(service_id):
     if form.validate_on_submit():
         pdf_file_bytes = form.file.data.read()
 
-        # virus_free = antivirus_client.scan(pdf_file)
-        virus_free = True
+        virus_free = antivirus_client.scan(BytesIO(pdf_file_bytes))
 
         if not virus_free:
-            return invalid_upload_error_message('The file you uploaded contains a virus')
+            return invalid_upload_error_message('Your file has failed the virus check')
 
-        import pdb; pdb.set_trace()
-
-        # could use pdf_file.stream.read() here but would stil have to rewind it
-        if len(pdf_file.read()) > MAX_FILE_UPLOAD_SIZE:
+        if len(pdf_file_bytes) > MAX_FILE_UPLOAD_SIZE:
             return invalid_upload_error_message('File must be smaller than 2MB')
-        pdf_file.seek(0)
 
         try:
-            # this only works with stream
-            # BytesIO(pdf_file_bytes)
-            page_count = pdf_page_count(pdf_file.stream)
-            pdf_file.seek(0)
+            page_count = pdf_page_count(BytesIO(pdf_file_bytes))
         except PdfReadError:
             current_app.logger.info('Invalid PDF uploaded for service_id: {}'.format(service_id))
             return invalid_upload_error_message('File must be a valid PDF')
@@ -67,17 +59,14 @@ def upload_letter(service_id):
         bucket_name, file_location = get_transient_letter_location(service_id, upload_id)
 
         try:
-            # BytesIO(pdf_file_bytes)
-
-            response = sanitise_letter(pdf_file)
+            response = sanitise_letter(BytesIO(pdf_file_bytes))
             response.raise_for_status()
         except RequestException as ex:
             if ex.response is not None and ex.response.status_code == 400:
                 BytesIO(pdf_file_bytes)
 
-                pdf_file.seek(0)
                 utils_s3upload(
-                    filedata=pdf_file.stream.read(),
+                    filedata=pdf_file_bytes,
                     region=current_app.config['AWS_REGION'],
                     bucket_name=bucket_name,
                     file_location=file_location,
@@ -99,7 +88,7 @@ def upload_letter(service_id):
                 'main.uploaded_letter_preview',
                 service_id=service_id,
                 file_id=upload_id,
-                original_filename=pdf_file.filename,
+                original_filename=form.file.data.filename,
                 page_count=page_count,
             )
         )
@@ -136,8 +125,6 @@ def uploaded_letter_preview(service_id, file_id):
     page_count = request.args.get('page_count')
 
     template_dict = notification_api_client.get_precompiled_template(service_id)
-
-    print('&&& page count is {} &&&&&&&'.format(page_count), end='\n\n\n')
 
     template = get_template(
         template_dict,
