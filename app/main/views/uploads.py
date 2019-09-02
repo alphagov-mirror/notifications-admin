@@ -64,11 +64,13 @@ def upload_letter(service_id):
             response.raise_for_status()
         except RequestException as ex:
             if ex.response is not None and ex.response.status_code == 400:
-                upload_letter_to_s3(pdf_file_bytes, file_location, 'invalid')
+                status = 'invalid'
+                upload_letter_to_s3(pdf_file_bytes, file_location, status)
             else:
                 raise ex
         else:
-            upload_letter_to_s3(response.content, file_location, 'valid')
+            status = 'valid'
+            upload_letter_to_s3(response.content, file_location, status)
 
         return redirect(
             url_for(
@@ -77,6 +79,7 @@ def upload_letter(service_id):
                 file_id=upload_id,
                 original_filename=form.file.data.filename,
                 page_count=page_count,
+                status=status,
             )
         )
 
@@ -94,6 +97,7 @@ def invalid_upload_error_message(message):
 def uploaded_letter_preview(service_id, file_id):
     original_filename = request.args.get('original_filename')
     page_count = request.args.get('page_count')
+    status = request.args.get('status')
 
     template_dict = service_api_client.get_precompiled_template(service_id)
 
@@ -108,7 +112,7 @@ def uploaded_letter_preview(service_id, file_id):
         page_count=page_count
     )
 
-    return render_template('views/uploads/preview.html', original_filename=original_filename, template=template)
+    return render_template('views/uploads/preview.html', original_filename=original_filename, template=template, status=status)
 
 
 @main.route("/services/<service_id>/preview-letter-image/<file_id>")
