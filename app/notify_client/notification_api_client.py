@@ -119,11 +119,5 @@ class NotificationApiClient(NotifyAdminAPIClient):
             }
         )
 
-    # doesn't belong in this file
-    def get_precompiled_template(self, service_id):
-        return self.get(
-            url='/service/{}/template/precompiled'.format(service_id)
-        )
-
 
 notification_api_client = NotificationApiClient()

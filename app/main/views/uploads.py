@@ -1,8 +1,6 @@
-import base64
 import uuid
 from io import BytesIO
 
-import requests
 from flask import (
     current_app,
     flash,
@@ -11,16 +9,20 @@ from flask import (
     request,
     url_for,
 )
-from notifications_utils.pdf import extract_page_from_pdf, pdf_page_count
-from notifications_utils.s3 import s3upload as utils_s3upload
+from notifications_utils.pdf import pdf_page_count
 from PyPDF2.utils import PdfReadError
 from requests import RequestException
 
-from app import notification_api_client
+from app import service_api_client
 from app.extensions import antivirus_client
 from app.main import main
 from app.main.forms import PDFUploadForm
-from app.s3_client.s3_logo_client import get_s3_object
+from app.s3_client.s3_letter_upload_client import (
+    get_letter_pdf_and_metadata,
+    get_transient_letter_file_location,
+    upload_letter_to_s3,
+)
+from app.template_previews import TemplatePreview, sanitise_letter
 from app.utils import get_template, user_has_permissions
 
 MAX_FILE_UPLOAD_SIZE = 2 * 1024 * 1024  # 2MB
@@ -42,12 +44,11 @@ def upload_letter(service_id):
         pdf_file_bytes = form.file.data.read()
 
         virus_free = antivirus_client.scan(BytesIO(pdf_file_bytes))
-
         if not virus_free:
             return invalid_upload_error_message('Your file has failed the virus check')
 
         if len(pdf_file_bytes) > MAX_FILE_UPLOAD_SIZE:
-            return invalid_upload_error_message('File must be smaller than 2MB')
+            return invalid_upload_error_message('Your file must be smaller than 2MB')
 
         try:
             page_count = pdf_page_count(BytesIO(pdf_file_bytes))
@@ -56,32 +57,18 @@ def upload_letter(service_id):
             return invalid_upload_error_message('File must be a valid PDF')
 
         upload_id = uuid.uuid4()
-        bucket_name, file_location = get_transient_letter_location(service_id, upload_id)
+        file_location = get_transient_letter_file_location(service_id, upload_id)
 
         try:
             response = sanitise_letter(BytesIO(pdf_file_bytes))
             response.raise_for_status()
         except RequestException as ex:
             if ex.response is not None and ex.response.status_code == 400:
-                BytesIO(pdf_file_bytes)
-
-                utils_s3upload(
-                    filedata=pdf_file_bytes,
-                    region=current_app.config['AWS_REGION'],
-                    bucket_name=bucket_name,
-                    file_location=file_location,
-                    metadata={'status': 'invalid'}
-                )
+                upload_letter_to_s3(pdf_file_bytes, file_location, 'invalid')
             else:
                 raise ex
         else:
-            utils_s3upload(
-                filedata=response.content,
-                region=current_app.config['AWS_REGION'],
-                bucket_name=bucket_name,
-                file_location=file_location,
-                metadata={'status': 'valid'}
-            )
+            upload_letter_to_s3(response.content, file_location, 'valid')
 
         return redirect(
             url_for(
@@ -96,22 +83,6 @@ def upload_letter(service_id):
     return render_template('views/uploads/choose-file.html', form=form)
 
 
-def sanitise_letter(pdf_file):
-    return requests.post(
-        '{}/precompiled/sanitise'.format(current_app.config['TEMPLATE_PREVIEW_API_HOST']),
-        data=pdf_file,
-        headers={'Authorization': 'Token {}'.format(current_app.config['TEMPLATE_PREVIEW_API_KEY'])}
-    )
-
-
-# move to an S3 helper file
-def get_transient_letter_location(service_id, upload_id):
-    return (
-        current_app.config['TRANSIENT_UPLOADED_LETTERS'],
-        'service-{}/{}.pdf'.format(service_id, upload_id)
-    )
-
-
 def invalid_upload_error_message(message):
     flash(message, 'dangerous')
     return render_template('views/uploads/choose-file.html', form=PDFUploadForm()), 400
@@ -124,7 +95,7 @@ def uploaded_letter_preview(service_id, file_id):
     original_filename = request.args.get('original_filename')
     page_count = request.args.get('page_count')
 
-    template_dict = notification_api_client.get_precompiled_template(service_id)
+    template_dict = service_api_client.get_precompiled_template(service_id)
 
     template = get_template(
         template_dict,
@@ -140,44 +111,15 @@ def uploaded_letter_preview(service_id, file_id):
     return render_template('views/uploads/preview.html', original_filename=original_filename, template=template)
 
 
-# this is the page that makes the image
 @main.route("/services/<service_id>/preview-letter-image/<file_id>")
 @user_has_permissions('send_messages')
 def view_letter_upload_as_preview(service_id, file_id):
-    s3_object = get_s3_object(
-        current_app.config['TRANSIENT_UPLOADED_LETTERS'],
-        'service-{}/{}.pdf'.format(service_id, file_id)
-    )
-    status = s3_object.get()['Metadata']['status']
-    pdf_file = s3_object.get()['Body'].read()
+    file_location = get_transient_letter_file_location(service_id, file_id)
+    pdf_file, metadata = get_letter_pdf_and_metadata(file_location)
 
     page = request.args.get('page')
-    pdf_page = extract_page_from_pdf(BytesIO(pdf_file), int(page) - 1)
 
-    if status == 'invalid':
-        path = '/precompiled/overlay.png'
-        query_string = '?page_number={}'.format(page) if page else ''
-        content = pdf_page
+    if metadata['status'] == 'invalid':
+        return TemplatePreview.from_invalid_pdf_file(pdf_file, page)
     else:
-        query_string = '?hide_notify=true' if page == '1' else ''
-        path = '/precompiled-preview.png'
-        content = base64.b64encode(pdf_page).decode('utf-8')
-
-    url = current_app.config['TEMPLATE_PREVIEW_API_HOST'] + path + query_string
-    response_content = _get_png_preview_or_overlaid_pdf(url, content)
-
-    display_file = base64.b64decode(response_content)
-
-    return display_file
-
-
-def _get_png_preview_or_overlaid_pdf(url, data):
-    resp = requests.post(
-        url,
-        data=data,
-        headers={'Authorization': 'Token {}'.format(current_app.config['TEMPLATE_PREVIEW_API_KEY'])}
-    )
-    # if resp.status_code != 200:
-    #     raise InvalidRequest()
-
-    return base64.b64encode(resp.content).decode('utf-8')
+        return TemplatePreview.from_valid_pdf_file(pdf_file, page)
