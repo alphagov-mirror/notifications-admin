@@ -548,7 +548,7 @@ class RenameServiceForm(StripWhitespaceForm):
         u'Service name',
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r"[a-zA-Z0-9].*[a-zA-Z0-9]", message="Needs to include at least two alphanumeric characters")
+            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
         ])
 
 
@@ -557,7 +557,7 @@ class RenameOrganisationForm(StripWhitespaceForm):
         u'Organisation name',
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r"[a-zA-Z0-9].*[a-zA-Z0-9]", message="Needs to include at least two alphanumeric characters")
+            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
         ])
 
 
@@ -665,7 +665,7 @@ class CreateServiceForm(StripWhitespaceForm):
         "What’s your service called?",
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r"[a-zA-Z0-9].*[a-zA-Z0-9]", message="Needs to include at least two alphanumeric characters")
+            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
         ])
     organisation_type = OrganisationTypeField('Who runs this service?')
 
