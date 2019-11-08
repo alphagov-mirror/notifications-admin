@@ -397,6 +397,24 @@ def test_should_not_hit_api_if_service_name_hasnt_changed(
     assert not mock_update_service.called
 
 
+@pytest.mark.parametrize("new_service_name", [".", "A."])
+def test_should_not_hit_api_if_service_name_fails_validation(
+    client_request,
+    mock_update_service,
+    mock_service_name_is_unique,
+    new_service_name
+):
+    page = client_request.post(
+        'main.service_name_change',
+        service_id=SERVICE_ONE_ID,
+        _data={'name': new_service_name},
+        _expected_status=200,
+    )
+    assert not mock_service_name_is_unique.called
+    assert not mock_update_service.called
+    page.find("span", {"class": "error-message"})
+
+
 @pytest.mark.parametrize('user, expected_text, expected_link', [
     (
         active_user_with_permissions,

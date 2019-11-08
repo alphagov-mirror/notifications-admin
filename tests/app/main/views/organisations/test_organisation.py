@@ -160,6 +160,31 @@ def test_create_new_organisation_validates(
     assert mock_create_organisation.called is False
 
 
+@pytest.mark.parametrize("new_organisation_name", [".", "A."])
+def test_create_new_organisation_validates_organisation_name(
+    client_request,
+    platform_admin_user,
+    mocker,
+    new_organisation_name
+):
+    mock_create_organisation = mocker.patch(
+        'app.organisations_client.create_organisation'
+    )
+
+    client_request.login(platform_admin_user)
+    page = client_request.post(
+        '.add_organisation',
+        _data={
+            'name': new_organisation_name,
+            'organisation_type': 'local',
+            'crown_status': 'non-crown',
+        },
+        _expected_status=200,
+    )
+    assert mock_create_organisation.called is False
+    page.find("span", {"class": "error-message"})
+
+
 @pytest.mark.parametrize('organisation_type, organisation, expected_status', (
     ('nhs_gp', None, 200),
     ('central', None, 403),
