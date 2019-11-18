@@ -119,7 +119,7 @@ class MustContainAlphanumericCharacters:
 
     def __init__(
         self,
-        message="Needs to include at least two alphanumeric characters"
+        message="Must include at least two alphanumeric characters"
     ):
         self.message = message
 
