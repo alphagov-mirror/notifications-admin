@@ -40,6 +40,7 @@ from app.main.validators import (
     CsvFileValidator,
     DoesNotStartWithDoubleZero,
     LettersNumbersAndFullStopsOnly,
+    MustContainAlphanumericCharacters,
     NoCommasInPlaceHolders,
     OnlySMSCharacters,
     ValidEmail,
@@ -548,7 +549,7 @@ class RenameServiceForm(StripWhitespaceForm):
         u'Service name',
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
+            MustContainAlphanumericCharacters()
         ])
 
 
@@ -557,7 +558,7 @@ class RenameOrganisationForm(StripWhitespaceForm):
         u'Organisation name',
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
+            MustContainAlphanumericCharacters()
         ])
 
 
@@ -665,7 +666,7 @@ class CreateServiceForm(StripWhitespaceForm):
         "What’s your service called?",
         validators=[
             DataRequired(message='Cannot be empty'),
-            Regexp(r".*[a-zA-Z0-9].*[a-zA-Z0-9].*", message="Needs to include at least two alphanumeric characters")
+            MustContainAlphanumericCharacters()
         ])
     organisation_type = OrganisationTypeField('Who runs this service?')
 
