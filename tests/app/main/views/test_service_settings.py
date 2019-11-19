@@ -397,8 +397,8 @@ def test_should_not_hit_api_if_service_name_hasnt_changed(
     assert not mock_update_service.called
 
 
-@pytest.mark.parametrize("new_service_name", [".", "A."])
-def test_should_not_hit_api_if_service_name_fails_validation(
+@pytest.mark.parametrize("new_service_name", [".", "A.", ".8...."])
+def test_service_name_change_fails_if_new_name_has_less_than_2_alphanumeric_characters(
     client_request,
     mock_update_service,
     mock_service_name_is_unique,

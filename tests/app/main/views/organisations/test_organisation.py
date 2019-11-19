@@ -160,8 +160,8 @@ def test_create_new_organisation_validates(
     assert mock_create_organisation.called is False
 
 
-@pytest.mark.parametrize("new_organisation_name", [".", "A."])
-def test_create_new_organisation_validates_organisation_name(
+@pytest.mark.parametrize("new_organisation_name", [".", "A.", ".8...."])
+def test_create_new_organisation_fails_if_new_name_has_less_than_2_alphanumeric_characters(
     client_request,
     platform_admin_user,
     mocker,
