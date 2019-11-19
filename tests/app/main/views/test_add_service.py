@@ -277,15 +277,13 @@ def test_should_return_form_errors_when_service_name_is_empty(
     assert 'Cannot be empty' in page.text
 
 
-@pytest.mark.parametrize("new_service_name", [".", "A.", ".8...."])
 def test_add_service_fails_if_service_name_has_less_than_2_alphanumeric_characters(
     client_request,
     mock_get_organisation_by_domain,
-    new_service_name
 ):
     page = client_request.post(
         'main.add_service',
-        data={"name": new_service_name},
+        data={"name": "."},
         _expected_status=200,
     )
     page.find("span", {"class": "error-message"})

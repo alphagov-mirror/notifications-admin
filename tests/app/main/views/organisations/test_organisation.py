@@ -160,12 +160,10 @@ def test_create_new_organisation_validates(
     assert mock_create_organisation.called is False
 
 
-@pytest.mark.parametrize("new_organisation_name", [".", "A.", ".8...."])
 def test_create_new_organisation_fails_if_new_name_has_less_than_2_alphanumeric_characters(
     client_request,
     platform_admin_user,
     mocker,
-    new_organisation_name
 ):
     mock_create_organisation = mocker.patch(
         'app.organisations_client.create_organisation'
@@ -175,7 +173,7 @@ def test_create_new_organisation_fails_if_new_name_has_less_than_2_alphanumeric_
     page = client_request.post(
         '.add_organisation',
         _data={
-            'name': new_organisation_name,
+            'name': ".",
             'organisation_type': 'local',
             'crown_status': 'non-crown',
         },
