@@ -286,7 +286,7 @@ def test_add_service_fails_if_service_name_has_less_than_2_alphanumeric_characte
         data={"name": "."},
         _expected_status=200,
     )
-    page.find("span", {"class": "error-message"})
+    assert page.find("span", {"class": "error-message"})
 
 
 def test_should_return_form_errors_with_duplicate_service_name_regardless_of_case(

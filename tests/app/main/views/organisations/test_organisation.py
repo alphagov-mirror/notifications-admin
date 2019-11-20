@@ -180,7 +180,7 @@ def test_create_new_organisation_fails_if_new_name_has_less_than_2_alphanumeric_
         _expected_status=200,
     )
     assert mock_create_organisation.called is False
-    page.find("span", {"class": "error-message"})
+    assert page.find("span", {"class": "error-message"})
 
 
 @pytest.mark.parametrize('organisation_type, organisation, expected_status', (
