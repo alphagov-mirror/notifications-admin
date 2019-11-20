@@ -339,6 +339,7 @@ def get_notification_check_endpoint(service_id, template):
 )
 @user_has_permissions('send_messages', restrict_admin_usage=True)
 def send_test_step(service_id, template_id, step_index):
+    print('session at start: ', session)
     if {'recipient', 'placeholders'} - set(session.keys()):
         return redirect(url_for(
             {
@@ -350,6 +351,9 @@ def send_test_step(service_id, template_id, step_index):
         ))
 
     db_template = current_service.get_template_with_user_permission_or_403(template_id, current_user)
+    print('\n\n1.')
+    print('getting page, step index is ', step_index)
+    print('getting page, placeholders are ', session['placeholders'], end='\n\n\n')
 
     if not session.get('send_test_letter_page_count'):
         session['send_test_letter_page_count'] = get_page_count_for_letter(db_template)
@@ -381,7 +385,9 @@ def send_test_step(service_id, template_id, step_index):
 
     try:
         current_placeholder = placeholders[step_index]
+        print('\n\n2.current placeholder is ', current_placeholder)
     except IndexError:
+        print('session when redirecting after index error: ', session)
         if all_placeholders_in_session(placeholders):
             return get_notification_check_endpoint(service_id, template)
         return redirect(url_for(
@@ -394,6 +400,7 @@ def send_test_step(service_id, template_id, step_index):
         ))
 
     optional_placeholder = (current_placeholder in optional_address_columns)
+    print('\n\n3.optional placeholder ', optional_placeholder)
     form = get_placeholder_form_instance(
         current_placeholder,
         dict_to_populate_from=get_normalised_placeholders_from_session(),
@@ -401,6 +408,12 @@ def send_test_step(service_id, template_id, step_index):
         optional_placeholder=optional_placeholder,
         allow_international_phone_numbers=current_service.has_permission('international_sms'),
     )
+
+    print('\n\n4. form about to validate, step index is ', step_index)
+    print('form about to validate, placeholders are ', session['placeholders'], end='\n\n\n')
+    print('Data entered in the form was:', form.placeholder_value.data, 'the end')
+    for error in form.errors.items():
+        print('form error', error)
 
     if form.validate_on_submit():
         # if it's the first input (phone/email), we store against `recipient` as well, for easier extraction.
@@ -413,10 +426,17 @@ def send_test_step(service_id, template_id, step_index):
         ):
             session['recipient'] = form.placeholder_value.data
 
+        print('\n\n5.form has validated, step index is ', step_index)
+        print('form has validated, placeholders are ', session['placeholders'], end='\n\n\n')
+
         session['placeholders'][current_placeholder] = form.placeholder_value.data
+
+        print('\n\n6.form has validated, step index is ', step_index)
+        print('form has validated, placeholders are ', session['placeholders'], end='\n\n\n')
 
         if all_placeholders_in_session(placeholders):
             return get_notification_check_endpoint(service_id, template)
+        print('session at before redirect: ', session)
 
         return redirect(url_for(
             request.endpoint,
@@ -428,8 +448,11 @@ def send_test_step(service_id, template_id, step_index):
 
     back_link = get_back_link(service_id, template, step_index)
 
+    # import pdb; pdb.set_trace()
+    print('template values before', template.values)
     template.values = get_recipient_and_placeholders_from_session(template.template_type)
     template.values[current_placeholder] = None
+    print('template values after', template.values)
 
     if (
         request.endpoint == 'main.send_one_off_step'
@@ -444,6 +467,8 @@ def send_test_step(service_id, template_id, step_index):
         )
     else:
         skip_link = None
+    print('session at before rendering page again: ', session)
+
     return render_template(
         'views/send-test.html',
         page_title=get_send_test_page_title(
@@ -757,6 +782,7 @@ def get_recipient_and_placeholders_from_session(template_type):
 
 
 def all_placeholders_in_session(placeholders):
+    print('get_normalised_placeholders_from_session() ', get_normalised_placeholders_from_session())
     return all(
         get_normalised_placeholders_from_session().get(placeholder, False) not in (False, None)
         for placeholder in placeholders
