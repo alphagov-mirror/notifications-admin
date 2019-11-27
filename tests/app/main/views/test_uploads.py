@@ -265,7 +265,7 @@ def test_post_upload_letter_with_invalid_file(mocker, client_request, fake_uuid)
         )
 
     assert page.find('div', class_='banner-dangerous').find('h1', {"data-error-type": 'content-outside-printable-area'})
-    assert not page.find('button', {'type': 'submit'})
+    assert not page.find('button', {'class': 'button', 'type': 'submit'})
 
 
 def test_post_upload_letter_shows_letter_preview_for_invalid_file(mocker, client_request, fake_uuid):
@@ -360,6 +360,8 @@ def test_uploaded_letter_preview(
 
     assert page.find('h1').text == 'my_letter.pdf'
     assert page.find('div', class_='letter-sent')
+    assert not page.find("label", {"class": "file-upload-button"})
+    assert page.find('button', {'class': 'button', 'type': 'submit'})
 
 
 def test_uploaded_letter_preview_does_not_show_send_button_if_service_in_trial_mode(

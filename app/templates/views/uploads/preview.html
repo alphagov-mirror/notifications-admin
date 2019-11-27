@@ -35,8 +35,7 @@
     {% endcall %}
   {% else %}
       {{ page_header(
-        original_filename,
-        back_link=url_for('main.upload_letter', service_id=current_service.id)
+        original_filename
       ) }}
   {% endif %}
 
