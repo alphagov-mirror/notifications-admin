@@ -298,6 +298,9 @@ def test_post_upload_letter_shows_letter_preview_for_invalid_file(mocker, client
     assert 'The Queen' not in page.text
     assert len(page.select('.letter-postage')) == 0
 
+    assert page.find("a", {"class": "govuk-back-link"})["href"] == "/services/{}/upload-letter".format(SERVICE_ONE_ID)
+    assert page.find("label", {"class": "file-upload-button"})
+
     letter_images = page.select('main img')
     assert len(letter_images) == 1
     assert letter_images[0]['src'] == url_for(
