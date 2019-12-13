@@ -1,6 +1,7 @@
 import copy
 import re
 from datetime import datetime
+from freezegun import freeze_time
 from unittest.mock import call
 
 import pytest
@@ -409,6 +410,7 @@ def test_should_show_provider_version_history(
     assert second_row[4].text.strip() == "True"
 
 
+@freeze_time('2022-2-22 15:00')
 def test_should_show_version_history_for_first_two_sms_providers(
     client_request,
     platform_admin_user,
@@ -473,8 +475,8 @@ def test_should_show_version_history_for_first_two_sms_providers(
         for heading in page.select('main h2')
     ] == [
         'Now',
-        '21 February 2022',
-        '31 December',
+        'Today',
+        '1 January 2020',
     ]
 
     assert [
