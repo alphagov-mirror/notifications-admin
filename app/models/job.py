@@ -30,6 +30,7 @@ class Job(JSONModel):
         'processing_started',
         'notification_count',
         'created_by',
+        'upload_type',
     }
 
     @classmethod
