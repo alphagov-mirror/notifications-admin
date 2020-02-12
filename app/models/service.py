@@ -670,3 +670,17 @@ class Service(JSONModel):
     @cached_property
     def returned_letter_summary(self):
         return service_api_client.get_returned_letter_summary(self.id)
+
+    @property
+    def most_recent_returned_letter_report(self):
+        if not self.returned_letter_summary:
+            return None
+        return self.returned_letter_summary[0]['reported_at']
+
+    @property
+    def count_of_returned_letters_in_last_7_days(self):
+        return sum(
+            report['returned_letter_count']
+            for report in self.returned_letter_summary
+            if report['reported_at'] > '7'
+        )
