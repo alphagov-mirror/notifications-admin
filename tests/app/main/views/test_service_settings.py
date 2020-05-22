@@ -703,6 +703,20 @@ def test_should_raise_duplicate_name_handled(
     assert mock_verify_password.called
 
 
+def test_service_name_change_confirm_handles_expired_session(
+    client_request, mock_verify_password, mock_update_service
+):
+    page = client_request.post(
+        'main.service_name_change_confirm',
+        service_id=SERVICE_ONE_ID,
+        _follow_redirects=True
+    )
+    mock_verify_password.assert_not_called()
+    mock_update_service.assert_not_called()
+
+    assert page.find('div', 'banner-dangerous').text.strip() == "Session expired. Try again"
+
+
 @pytest.mark.parametrize('volumes, consent_to_research, expected_estimated_volumes_item', [
     ((0, 0, 0), None, 'Tell us how many messages you expect to send Not completed'),
     ((1, 0, 0), None, 'Tell us how many messages you expect to send Not completed'),
