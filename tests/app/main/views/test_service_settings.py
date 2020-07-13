@@ -3685,6 +3685,15 @@ def test_unknown_channel_404s(
         'True', 'True',
         ['email', 'sms', 'letter'],
     ),
+    pytest.param(
+        'email',
+        'It’s free to send emails through GOV.UK Notify.',
+        'Send emails',
+        ['broadcast'],
+        'True', 'True',
+        ['email', 'broadcast'],
+        marks=pytest.mark.xfail(raises=AssertionError),
+    ),
 ])
 def test_switch_service_enable_letters(
     client_request,
