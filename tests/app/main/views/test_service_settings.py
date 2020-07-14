@@ -3677,7 +3677,8 @@ def test_unknown_channel_404s(
         'It costs between 35p and 81p to send a letter using Notify.',
         'Send letters',
         ['email', 'sms'],
-        'False', 'True',
+        'False',
+        'True',
         ['email', 'sms', 'letter'],
     ),
     (
@@ -3685,7 +3686,8 @@ def test_unknown_channel_404s(
         'It costs between 35p and 81p to send a letter using Notify.',
         'Send letters',
         ['email', 'sms', 'letter'],
-        'True', 'False',
+        'True',
+        'False',
         ['email', 'sms'],
     ),
     (
@@ -3693,7 +3695,8 @@ def test_unknown_channel_404s(
         'You have a free allowance of 250,000 text messages each financial year.',
         'Send text messages',
         [],
-        'False', 'True',
+        'False',
+        'True',
         ['sms'],
     ),
     (
@@ -3701,7 +3704,8 @@ def test_unknown_channel_404s(
         'It’s free to send emails through GOV.UK Notify.',
         'Send emails',
         [],
-        'False', 'True',
+        'False',
+        'True',
         ['email'],
     ),
     (
@@ -3709,7 +3713,8 @@ def test_unknown_channel_404s(
         'It’s free to send emails through GOV.UK Notify.',
         'Send emails',
         ['email', 'sms', 'letter'],
-        'True', 'True',
+        'True',
+        'True',
         ['email', 'sms', 'letter'],
     ),
     pytest.param(
@@ -3717,12 +3722,13 @@ def test_unknown_channel_404s(
         'It’s free to send emails through GOV.UK Notify.',
         'Send emails',
         ['broadcast'],
-        'True', 'True',
+        'True',
+        'True',
         ['email', 'broadcast'],
         marks=pytest.mark.xfail(raises=AssertionError),
     ),
 ])
-def test_switch_service_enable_letters(
+def test_switch_service_channels_on_and_off(
     client_request,
     service_one,
     mocker,
@@ -3730,9 +3736,9 @@ def test_switch_service_enable_letters(
     channel,
     expected_first_para,
     expected_legend,
+    initial_permissions,
     expected_initial_value,
     posted_value,
-    initial_permissions,
     expected_updated_permissions,
 ):
     mocked_fn = mocker.patch('app.service_api_client.update_service', return_value=service_one)
