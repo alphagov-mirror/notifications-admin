@@ -37,6 +37,19 @@ class ElementNotFound(Exception):
     pass
 
 
+class UnexpectedHTTPStatus403(Exception):
+    pass
+
+
+def get_unexpected_status_exception(status_code):
+    return {
+        # Define exceptions here if you want to catch them somewhere else
+        403: UnexpectedHTTPStatus403,
+    }.get(
+        status_code, type(f'UnexpectedHTTPStatus{status_code}', (Exception,), {})
+    )
+
+
 @pytest.fixture(scope='session')
 def app_():
     app = Flask('app')
@@ -3036,7 +3049,11 @@ def client_request(
             if _expected_redirect and _expected_status == 200:
                 _expected_status = 302
 
-            assert resp.status_code == _expected_status, resp.location
+            if resp.status_code != _expected_status:
+                raise get_unexpected_status_exception(resp.status_code)(
+                    f'Expected HTTP status {_expected_status}, reponse was {resp.status_code}'
+                )
+
             if _expected_redirect:
                 assert resp.location == _expected_redirect
             page = BeautifulSoup(resp.data.decode('utf-8'), 'html.parser')

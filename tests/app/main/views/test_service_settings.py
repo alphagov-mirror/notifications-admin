@@ -25,6 +25,7 @@ from tests.conftest import (
     ORGANISATION_ID,
     SERVICE_ONE_ID,
     TEMPLATE_ONE_ID,
+    UnexpectedHTTPStatus403,
     create_active_user_no_api_key_permission,
     create_active_user_no_settings_permission,
     create_active_user_with_permissions,
@@ -3725,7 +3726,7 @@ def test_unknown_channel_404s(
         'True',
         'True',
         ['email', 'broadcast'],
-        marks=pytest.mark.xfail(raises=AssertionError),
+        marks=pytest.mark.xfail(raises=UnexpectedHTTPStatus403),
     ),
 ])
 def test_switch_service_channels_on_and_off(
