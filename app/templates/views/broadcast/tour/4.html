@@ -3,7 +3,7 @@
 {% extends "admin_template.html" %}
 
 {% block per_page_title %}
-  An emergency alert looks a bit like a text message.
+  An alert looks a bit like a text message.
 {% endblock %}
 
 {% set mainClasses = "govuk-!-padding-top-0 govuk-!-padding-bottom-0" %}
@@ -14,10 +14,11 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-one-half">
         <h1 class="heading-medium">
-          People will also get a notification.
+          An alert looks a bit like a text message.
         </h1>
         <p class="govuk-body heading-medium">
-          You can write a few lines to tell them about the emergency.
+          It’s broadcast directly from a mobile phone mast, so you don’t
+          need to know anyone’s phone number.
         </p>
         <p class="govuk-body heading-medium">
           <a class="govuk-link govuk-link--no-visited-state" href='{{ url_for(".broadcast_tour", service_id=current_service.id, step_index=5) }}'>
