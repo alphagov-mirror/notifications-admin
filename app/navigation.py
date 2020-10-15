@@ -367,7 +367,8 @@ class HeaderNavigation(Navigation):
         'choose_broadcast_sub_area',
         'remove_broadcast_area',
         'preview_broadcast_message',
-        'view_broadcast_message',
+        'view_current_broadcast',
+        'view_previous_broadcast',
         'approve_broadcast_message',
         'reject_broadcast_message',
         'cancel_broadcast_message',
@@ -383,8 +384,6 @@ class MainNavigation(Navigation):
     mapping = {
         'dashboard': {
             'broadcast_tour',
-            'broadcast_dashboard',
-            'broadcast_dashboard_updates',
             'conversation',
             'inbox',
             'monthly',
@@ -395,8 +394,14 @@ class MainNavigation(Navigation):
             'view_notification',
             'view_notifications',
         },
-        'previous_broadcasts': {
+        'current-broadcasts': {
+            'broadcast_dashboard',
+            'broadcast_dashboard_updates',
+            'view_current_broadcast',
+        },
+        'previous-broadcasts': {
             'broadcast_dashboard_previous',
+            'view_previous_broadcast',
         },
         'templates': {
             'action_blocked',
@@ -431,7 +436,6 @@ class MainNavigation(Navigation):
             'choose_broadcast_sub_area',
             'remove_broadcast_area',
             'preview_broadcast_message',
-            'view_broadcast_message',
             'approve_broadcast_message',
             'reject_broadcast_message',
             'cancel_broadcast_message',
@@ -1038,7 +1042,8 @@ class CaseworkNavigation(Navigation):
         'choose_broadcast_sub_area',
         'remove_broadcast_area',
         'preview_broadcast_message',
-        'view_broadcast_message',
+        'view_current_broadcast',
+        'view_previous_broadcast',
         'approve_broadcast_message',
         'reject_broadcast_message',
         'cancel_broadcast_message',
@@ -1368,7 +1373,8 @@ class OrgNavigation(Navigation):
         'choose_broadcast_sub_area',
         'remove_broadcast_area',
         'preview_broadcast_message',
-        'view_broadcast_message',
+        'view_current_broadcast',
+        'view_previous_broadcast',
         'approve_broadcast_message',
         'reject_broadcast_message',
         'cancel_broadcast_message',
